@@ -1,0 +1,44 @@
+
+# Location of .ped file 
+raw_file.dir: "/slade/home/sd718/GSA2018/GSA2018_309_025/PLINK_181218_0323/GSA2018_309_025.ped"
+
+# Directory of PLINK files to read
+raw: "/slade/home/sd718/GSA2018/GSA2018_309_025/PLINK_181218_0323/" 
+
+# PLINK module
+Plink_module: "PLINK/1.9b5-golf-2020a"
+# R module
+Rmodule: "R"
+
+# Minor allele frequency cut off
+MAF_threshold: 0.01
+# SNP missingness cut off
+Missing_genotype_threshold: 0.05
+# HWE cutoff
+HWE_cutoff: 0.000001
+# MIND cutoff
+missing_GT_rate: 0.05
+
+KING_module: "king"
+plink2: "PLINK/2.00a2.3_x86_64"
+
+
+strand_correct: "/slade/home/sd718/required_files/STRAND_info/version_3/GSAMD-24v3-0-EA_20034606_A1-b37.strand"
+
+
+wryner_script: "../wrayner/test/update_build.sh"
+
+# 1000G plink format
+
+1000G: "/slade/home/sd718/GSA2018/PLINK_analysis/PLINK_vcf.dir/1000G.bed"
+
+GCTA: "GCTA"
+
+sliding_windows_size: 1500
+step_size: 10
+LD: 0.2
+
+Genome_fasta_file: "/slade/home/sd718/cgatscripts/PCA_1000G/human_g1k_v37.fasta"
+
+minimac4: "Minimac4"
+m3vcf_dir: "/slade/home/sd718/required_files/1000G_vcf/"
