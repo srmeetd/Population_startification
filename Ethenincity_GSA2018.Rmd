@@ -1,0 +1,203 @@
+```{r}
+samples = data.table::fread ("MDS_merge2.mds", header = TRUE)
+samples = as.data.frame(samples)
+
+
+classification1 = data.table::fread ("C:/Users/sd718/OneDrive - University of Exeter/Desktop/GWAS/20130606_g1k.ped")
+
+classification = subset (classification1, select =c("Individual ID","Population"))
+classification$Population = gsub ("ACB|ASW|ESN|GWD|LWK|MSL|YRI","AFR",classification$Population)
+
+classification$Population = gsub("CLM|MXL|PEL|PUR","AMR",classification$Population)
+
+classification$Population = gsub("CDX|CHB|CHB|JPT|KHV|CHS","EAS",classification$Population)
+
+classification$Population = gsub("CEU|FIN|GBR|IBS|TSI","EUR",classification$Population)
+
+classification$Population = gsub("BEB|GIH|ITU|PJL|STU","SAS",classification$Population)
+
+#classification=data.table::fread ("C:/Users/sd718/OneDrive - University of Exeter/Desktop/GWAS/1000G_clust.csv")
+#classification = as.data.frame(classification)
+#classification$Population = gsub("CHS","EAS",classification$Population)
+```
+
+```{r}
+
+meg = merge (samples,classification, by.y = "Individual ID",by.x = "IID",all.x= TRUE)
+notgrep = unique(classification$Population)
+  
+our_samples1 <- meg[!grepl(paste(notgrep, collapse="|"), meg$Population), ]
+
+our_samples1$Population = "Genotyped"
+meg1 = meg[!meg$FID%in%our_samples1$FID,]
+meg = rbind(meg1,our_samples1)
+
+eur = meg[meg$Population=="EUR",]
+eur$mean_c1 = mean(eur$C1)
+eur$mean_c2 = mean(eur$C2)
+eur$ed = sqrt((eur$C1-eur$mean_c1)^2 + (eur$C2-eur$mean_c2)^2)
+
+```
+
+```{r}
+our_samples = meg[meg$Population%in%"Genotyped",]
+our_samples$mean_c1 = mean(eur$C1)
+our_samples$mean_c2 = mean(eur$C2)
+our_samples$ed = sqrt((our_samples$C1-our_samples$mean_c1)^2 + (our_samples$C2-our_samples$mean_c2)^2)
+
+```
+
+```{r}
+ggplot(data = meg) +
+    geom_point(mapping = aes(x = C2, y =C1,color = Population), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0, linetype="dotted") +
+    theme_minimal()
+
+```
+
+```{r}
+library(ggplot2)
+#a1 = our_samples[our_samples$C1< -0.03375896,] 
+a1 = our_samples[our_samples$C1<= mean(our_samples$C1),] 
+a1$cat = "EUR"
+B2 = our_samples[!our_samples$IID%in%a1$IID,]
+B2$cat = "NON_eur"
+b = rbind (B2,a1)
+
+Eur = a1
+a = b[grep("EUR",b$cat),]
+
+
+ggplot(data = b) +
+    geom_point(mapping = aes(x = C2, y =C1,color = cat), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0, linetype="dotted") +
+    theme_minimal()
+
+European_samples = as.data.frame(a1$IID)
+write.csv(Eur,"European_samples.txt")
+```
+
+```{r}
+AFR = meg[meg$Population=="AFR",]
+AFR$mean_c1 = mean(AFR$C1)
+AFR$mean_c2 = mean(AFR$C2)
+AFR$ed = sqrt((AFR$C1-AFR$mean_c1)^2 + (AFR$C2-AFR$mean_c2)^2)
+```
+
+```{r}
+our_samples = meg[meg$Population=="Genotyped",]
+our_samples = our_samples[!our_samples$IID%in%European_samples$`a1$IID`,]
+our_samples$mean_c1 = mean(AFR$C1)
+our_samples$mean_c2 = mean(AFR$C2)
+our_samples$ed = sqrt((our_samples$C1-our_samples$mean_c1)^2 + (our_samples$C2-our_samples$mean_c2)^2)
+african = our_samples[our_samples$C1>0.1,]
+african$cat = "AFR"
+d2 = our_samples[!our_samples$IID%in%african$IID,]
+d2$cat = "NON_AFR"
+c = rbind (african,d2)
+```
+
+```{r}
+ggplot(data = c) +
+    geom_point(mapping = aes(x = C1, y =C2,color = cat), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0.1, linetype="dotted") +
+    theme_minimal()
+
+African_samples = as.data.frame(african)
+write.csv(African_samples,"African_samples.csv")
+```
+
+```{r}
+EAS = meg[meg$Population=="EAS",]
+EAS$mean_c1 = mean(EAS$C1)
+EAS$mean_c2 = mean(EAS$C2)
+EAS$ed = sqrt((EAS$C1-EAS$mean_c1)^2 + (EAS$C2-EAS$mean_c2)^2)
+```
+
+```{r}
+our_samples = meg[meg$Population=="Genotyped",]
+our_samples = our_samples[!our_samples$IID%in%European_samples$`a1$IID`,]
+our_samples1 =our_samples[!our_samples$IID%in%african$IID,]
+
+our_samples1$mean_c1 = mean(EAS$C1)
+our_samples1$mean_c2 = mean(EAS$C2)
+our_samples1$ed = sqrt((our_samples1$C1-our_samples1$mean_c1)^2 + (our_samples1$C2-our_samples1$mean_c2)^2)
+eas = our_samples1[our_samples1$C2>0.1,]
+
+eas$cat = "EAS"
+d2 = our_samples1[!our_samples1$IID%in%eas$IID,]
+d2$cat = "NONEAS"
+c = rbind (eas,d2)
+```
+
+```{r}
+ggplot(data = c) +
+    geom_point(mapping = aes(x = C1, y =C2,color = cat), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0, linetype="dotted") +
+    theme_minimal()
+```
+
+
+```{r}
+SAS = meg[meg$Population=="SAS",]
+SAS$mean_c2 = mean(SAS$C2)
+SAS$mean_c3 = mean(EAS$C3)
+SAS$ed = sqrt((SAS$C2-SAS$mean_c2)^2 + (SAS$C3-SAS$mean_c3)^2)
+
+```
+```{r}
+our_samples = meg[meg$Population=="Genotyped",]
+our_samples = our_samples[!our_samples$IID%in%European_samples$`a1$IID`,]
+our_samples1 =our_samples[!our_samples$IID%in%african$IID,]
+our_samples = our_samples1[!our_samples1$IID%in%eas$IID,]
+our_samples$mean_c2 = mean(SAS$C2)
+our_samples$mean_c3 = mean(SAS$C3)
+our_samples$ed = sqrt((our_samples$C2-our_samples$mean_c2)^2 + (our_samples$C3-our_samples$mean_c3)^2)
+#sas_samples = our_samples[our_samples$C>0.001,]
+a1 = our_samples[our_samples$C2< mean(our_samples$C2),]
+a1$cat = "SAS"
+B2 = our_samples[!our_samples$IID%in%a1$IID,]
+B2$cat = "nonSAS"
+b = rbind (B2,a1)
+
+SAS = a1
+a = b[grep("^SAS",b$cat),]
+
+```
+```{r}
+ggplot(data = b) +
+    geom_point(mapping = aes(x = C1, y =C2,color = cat), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0, linetype="dotted") +
+    theme_minimal()
+```
+
+```{r}
+EUR = subset(Eur,select = c("IID","FID","cat"))
+african = subset(african,select = c("IID","FID","cat"))
+eas1 = subset(eas,select = c("IID","FID","cat"))
+SAS1 = subset(SAS,select = c("IID","FID","cat"))
+
+Alletehnicnity = rbind (EUR,african,eas1,SAS1)
+our_samples = meg[meg$Population%in%"Genotyped",]
+Americans = our_samples[!our_samples$FID%in%Alletehnicnity$FID,]
+Americans$cat = "AMR"
+AMR = subset(Americans,select = c("IID","FID","cat"))
+FINAL = rbind(Alletehnicnity,AMR)
+samples = merge (our_samples,FINAL,by="IID")
+
+write.csv(FINAL,"Ethenic_groupGSA2020.csv")
+```
+
+```{r}
+ggplot(data = samples) +
+    geom_point(mapping = aes(x = C1, y =C2,color = cat), show.legend = TRUE ) + 
+    geom_hline(yintercept = 0, linetype="dotted") + 
+    geom_vline(xintercept = 0, linetype="dotted") +
+    theme_minimal()
+```
+
