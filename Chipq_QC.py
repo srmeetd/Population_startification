@@ -264,7 +264,26 @@ def merge (infiles,outfile):
                     --out %(out)s'''
     P.run(statement)
 
-@transform (merge, regex(r"(.+).bed"),r"MDS_merge2")
+
+@transform (merge, regex(r"(.+).bed"),
+                        r"merge_genotype_1000G_filtred.bed")
+
+def mergefilter (infile,outfile):
+    g1000s = P.snip (infile,".bed")
+    module = PARAMS["Plink_module"]
+    out = P.snip (outfile,".bed")
+    statement = ''' module load %(module)s &&
+                    plink --bfile %(g1000s)s  
+                    --maf 0.01
+                    --hwe 0.000001
+                    --mind 0.2
+                    --geno 0.2
+                    --make-bed
+                    --out %(out)s'''
+    P.run(statement)
+
+
+@transform (mergefilter, regex(r"(.+).bed"),r"MDS_merge2")
 
 def pca (infile,outfile):
     g1000s = P.snip (infile,".bed")
